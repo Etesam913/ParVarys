@@ -1,6 +1,7 @@
 module Lib
-    ( someFunc
-    ) where
+  ( mainLib,
+  )
+where
 
-someFunc :: IO ()
-someFunc = putStrLn "\nThis is ParVarys 👋\n"
+mainLib :: IO ()
+mainLib = putStrLn "\nThis is ParVarys 👋\n"
