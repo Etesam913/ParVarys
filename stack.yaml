@@ -40,7 +40,13 @@ packages:
 #   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
 #
 # extra-deps: []
-
+extra-deps:
+  - gtk2hs-buildtools-0.13.8.0
+  - cairo-0.13.8.1
+  - glib-0.13.8.1
+  - gtk-0.15.5
+  - pango-0.13.8.1
+  - gio-0.13.8.1
 # Override default flag values for local packages and extra-deps
 # flags: {}
 
