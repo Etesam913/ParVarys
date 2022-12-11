@@ -47,6 +47,7 @@ extra-deps:
   - gtk-0.15.5
   - pango-0.13.8.1
   - gio-0.13.8.1
+  - pretty-simple-3.0.0.0
 # Override default flag values for local packages and extra-deps
 # flags: {}
 

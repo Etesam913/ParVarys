@@ -3,8 +3,11 @@ module Lib
   )
 where
 
+import Sequential (getSequentialOrdering)
+
 mainLib :: IO ()
-mainLib = testFib
+mainLib = do
+  getSequentialOrdering
 
 helloWorld :: IO ()
 helloWorld = putStrLn "Hello ParVarys 👋"
