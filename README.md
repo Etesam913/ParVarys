@@ -12,6 +12,26 @@ https://dl.acm.org/doi/10.1145/3230543.3230569
 
 Created by **Etesam Ansari** & **YunLan Li**
 
+## 📦 Running The Project
+
+```bash
+stack install
+```
+
+```bash
+stack build
+```
+
+```bash
+stack exec ParVarys-exe
+```
+
+## ➕ Adding Packages
+
+- To add a package I think you have to first add it to **extra-deps section** of the stack.yaml
+- Then you have to add it to the **dependencies** section of the package.yaml
+  - You may also want to add it to the executable dependencies section
+
 ## 📝 Installing threadscope
 
 ### Command To Run

@@ -22,7 +22,7 @@ description: Please see the README on GitHub at <https://github.com/githubuser/P
 dependencies:
   - base >= 4.7 && < 5
   - pretty-simple
-
+  - random
 ghc-options:
   - -Wall
   - -Wcompat
@@ -48,6 +48,7 @@ executables:
     dependencies:
       - ParVarys
       - pretty-simple
+      - random
 
 tests:
   ParVarys-test:

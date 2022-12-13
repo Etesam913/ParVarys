@@ -35,6 +35,7 @@ library
   build-depends:
       base >=4.7 && <5
     , pretty-simple
+    , random
   default-language: Haskell2010
 
 executable ParVarys-exe
@@ -48,6 +49,7 @@ executable ParVarys-exe
       ParVarys
     , base >=4.7 && <5
     , pretty-simple
+    , random
   default-language: Haskell2010
 
 test-suite ParVarys-test
@@ -62,4 +64,5 @@ test-suite ParVarys-test
       ParVarys
     , base >=4.7 && <5
     , pretty-simple
+    , random
   default-language: Haskell2010

@@ -53,6 +53,13 @@ packages:
       sha256: f4387a8d57fdbe8cd22b03e4db57d822ac48478df640225c07808e166b7a96c5
   original:
     hackage: pretty-simple-3.0.0.0
+- completed:
+    hackage: random-1.1@sha256:7b67624fd76ddf97c206de0801dc7e888097e9d572974be9b9ea6551d76965df,1777
+    pantry-tree:
+      size: 637
+      sha256: 14a1b01728c5584e87c9fa00746a66e28ffd89dd2c0eabd334c8463953496e1b
+  original:
+    hackage: random-1.1
 snapshots:
 - completed:
     size: 532832
