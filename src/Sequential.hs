@@ -50,7 +50,7 @@ maxNumOfFlowsInRow :: Integer
 maxNumOfFlowsInRow = 5
 
 -- FUNCTIONS:
--- Generates random Integer from lb to ub (inclusive?)
+-- Generates random Integer from lb to ub (inclusive? Yes)
 generateRandomNum :: Integer -> Integer -> IO Integer
 generateRandomNum lb ub = do
   randomRIO (lb, ub :: Integer)
@@ -58,9 +58,9 @@ generateRandomNum lb ub = do
 addFlows :: (Eq t, Num t) => [Flow] -> t -> IO [Flow]
 addFlows arr 0 = do return arr
 addFlows arr n = do
-  randomCoflowId <- generateRandomNum 0 numOfCoflows
-  randomEgressPortId <- generateRandomNum 0 numOfPorts
-  addFlows (Flow randomCoflowId 2 randomEgressPortId : arr) (n -1)
+  randomCoflowId <- generateRandomNum 1 numOfCoflows
+  randomEgressPortId <- generateRandomNum 1 numOfPorts
+  addFlows (Flow randomCoflowId 2 randomEgressPortId : arr) (n - 1)
 
 -- Generates Flows that go in each row
 generateFlows :: IO [Flow]
