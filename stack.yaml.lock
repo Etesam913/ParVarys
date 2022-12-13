@@ -7,62 +7,62 @@ packages:
 - completed:
     hackage: gtk2hs-buildtools-0.13.8.0@sha256:132f38155fc677430a47ea750918973161c876fb6f281d342ac2f07eb99229ce,5238
     pantry-tree:
-      size: 3588
       sha256: 4552e3c0f2ef0f16285c38898d7e2b6aeea67d4e37cd203b0c82f70592096c45
+      size: 3588
   original:
     hackage: gtk2hs-buildtools-0.13.8.0
 - completed:
     hackage: cairo-0.13.8.1@sha256:1938aaeb5d3504678d995774dfe870f6b66cbd43d336b692fa8779b23b2b67a9,4075
     pantry-tree:
-      size: 2830
       sha256: 8f6344da4c578a4dd3a49c333e2158b695bfae32a74d34a76bbc6e531b70c95c
+      size: 2830
   original:
     hackage: cairo-0.13.8.1
 - completed:
     hackage: glib-0.13.8.1@sha256:42670daf0c85309281e08ba8559df75daa2e3be642e79fdfa781bef5e59658b0,3156
     pantry-tree:
-      size: 1625
       sha256: 1167575db8823b7a9f5fbaebdbc0ea5cef54301e442754ec256ba9371bd388e7
+      size: 1625
   original:
     hackage: glib-0.13.8.1
 - completed:
     hackage: gtk-0.15.5@sha256:62b0ed14e07e57f13a575d36f37c6f250ee9ed45d68d492685e8bd26c35c2203,16598
     pantry-tree:
-      size: 21349
       sha256: 4ac5265002ca446b309acc48e469e37ec2b09827886af4e733bd1f68539a4879
+      size: 21349
   original:
     hackage: gtk-0.15.5
 - completed:
     hackage: pango-0.13.8.1@sha256:877b121c0bf87c96d3619effae6751ecfd74b7f7f3227cf3fde012597aed5ed9,3917
     pantry-tree:
-      size: 1506
       sha256: eec456a3d16f1a9305196a86a7c49a6f2cfe1b041a50b02059dc4898a07a3bd9
+      size: 1506
   original:
     hackage: pango-0.13.8.1
 - completed:
     hackage: gio-0.13.8.1@sha256:7404841eefdfffb50c2b5f63879ffe4bf40fb5ddf90a7f633494eca0e23150a5,3136
     pantry-tree:
-      size: 2036
       sha256: aaaf68e5b95f7ac53e60e55552bb0919597bd4002ebdf45fbd580cbc1c71f487
+      size: 2036
   original:
     hackage: gio-0.13.8.1
 - completed:
     hackage: pretty-simple-3.0.0.0@sha256:b8e60b4f52458c89b47678bfbe6daec9c6efcf961e1f2a5faddb63730a13e3a3,3903
     pantry-tree:
-      size: 1404
       sha256: f4387a8d57fdbe8cd22b03e4db57d822ac48478df640225c07808e166b7a96c5
+      size: 1404
   original:
     hackage: pretty-simple-3.0.0.0
 - completed:
     hackage: random-1.1@sha256:7b67624fd76ddf97c206de0801dc7e888097e9d572974be9b9ea6551d76965df,1777
     pantry-tree:
-      size: 637
       sha256: 14a1b01728c5584e87c9fa00746a66e28ffd89dd2c0eabd334c8463953496e1b
+      size: 637
   original:
     hackage: random-1.1
 snapshots:
 - completed:
-    size: 532832
-    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/16/23.yaml
-    sha256: fbb2a0519008533924c7753bd7164ddd1009f09504eb06674acad6049b46db09
-  original: lts-16.23
+    sha256: f5d9002479d87103fd070f17cfe71fcd2147676f1e47a2dabca5ab91a42b846d
+    size: 619399
+    url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/19/23.yaml
+  original: lts-19.23
