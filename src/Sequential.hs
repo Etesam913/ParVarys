@@ -9,8 +9,9 @@ where
 import System.Random (randomRIO)
 import Text.Pretty.Simple (pPrint)
 
+-- DATA TYPES:
 data IngressPort = IngressPort
-  { iId :: Int,
+  { iId :: Integer,
     -- The 4 rows for a virtual output queue
     rows :: (Row, Row, Row, Row),
     iBandwidth :: Float
@@ -18,7 +19,7 @@ data IngressPort = IngressPort
   deriving (Show)
 
 data EgressPort = EgressPort
-  { eId :: Int,
+  { eId :: Integer,
     eBandwidth :: Float
   }
   deriving (Show)
@@ -32,11 +33,12 @@ data Flow = Flow
   deriving (Show)
 
 data Row where
-  Row :: {flows :: Maybe [Flow]} -> Row
+  Row :: {flows :: [Flow]} -> Row
   deriving (Show)
 
+-- GENERAL VARIABLES:
 numOfPorts :: Integer
-numOfPorts = 10
+numOfPorts = 2
 
 numOfRows :: Integer
 numOfRows = 4
@@ -45,53 +47,50 @@ numOfCoflows :: Integer
 numOfCoflows = 4
 
 maxNumOfFlowsInRow :: Integer
-maxNumOfFlowsInRow = 10
+maxNumOfFlowsInRow = 5
 
+-- FUNCTIONS:
 -- Generates random Integer from lb to ub (inclusive?)
 generateRandomNum :: Integer -> Integer -> IO Integer
 generateRandomNum lb ub = do
   randomRIO (lb, ub :: Integer)
 
-addFullFlows :: (Eq t, Num t) => [Maybe Flow] -> t -> IO [Maybe Flow]
-addFullFlows arr 0 = do return arr
-addFullFlows arr n = do
+addFlows :: (Eq t, Num t) => [Flow] -> t -> IO [Flow]
+addFlows arr 0 = do return arr
+addFlows arr n = do
   randomCoflowId <- generateRandomNum 0 numOfCoflows
   randomEgressPortId <- generateRandomNum 0 numOfPorts
-  addFullFlows (Just (Flow randomCoflowId 2 randomEgressPortId) : arr) (n -1)
-
-addEmptyFlows :: [Maybe Flow] -> Integer -> [Maybe Flow]
-addEmptyFlows arr 0 = arr
-addEmptyFlows arr n = addEmptyFlows (Nothing : arr) (n -1)
+  addFlows (Flow randomCoflowId 2 randomEgressPortId : arr) (n -1)
 
 -- Generates Flows that go in each row
-
-generateFlows :: IO [Maybe Flow]
+generateFlows :: IO [Flow]
 generateFlows = do
   numOfFlows <- generateRandomNum 0 maxNumOfFlowsInRow
-  let remainingFlowSpots = maxNumOfFlowsInRow - numOfFlows
-  addFullFlows (addEmptyFlows [] remainingFlowSpots) numOfFlows
+  addFlows [] numOfFlows
 
---addRows [x:xs] = do
+addRows :: Monad m => [Row] -> [m [Flow]] -> m [Row]
+addRows arr [] = do return arr
+addRows arr (f : fs) = do
+  currentFlows <- f
+  addRows (Row currentFlows : arr) fs
 
-generateRows :: IO ()
+generateRows :: IO [Row]
 generateRows = do
-  generatedFlows <- generateFlows
-  --generateRows (Row generatedFlows : arr) (n -1)
-  putStrLn "bob"
+  -- generate flows for each row
+  let rowFlows = [generateFlows | _ <- [1 .. numOfRows]]
+  addRows [] rowFlows
 
-{- addRows arr 0 = arr
-addRows arr n =  -}
+generateIngressPorts :: [IngressPort] -> Integer -> IO [IngressPort]
+generateIngressPorts arr 0 = return arr
+generateIngressPorts arr n = do
+  (r1 : r2 : r3 : r4 : _) <- generateRows
+  generateIngressPorts (IngressPort n (r1, r2, r3, r4) 2 : arr) (n -1)
 
+-- This the func that gets exports
 getSequentialOrdering :: IO ()
 getSequentialOrdering = do
-  -- Recreating first ingress port from example: https://etesam.nyc3.digitaloceanspaces.com/virtual-output-queue.png
-  let r1 = Row $ Just [Flow 0 2.01 1, Flow 1 1 1]
-  let r2 = Row $ Just [Flow 1 1 1]
-  let r3 = Row Nothing
-  let r4 = Row Nothing
+  ingressPorts <- generateIngressPorts [] numOfPorts
+  let egressPorts = [EgressPort x 2 | x <- [1 .. numOfPorts]]
 
-  let firstIPort = IngressPort 0 (r1, r2, r3, r4) 100
-
-  let firstEPort = EgressPort 0 50
-
-  pPrint firstIPort
+  pPrint ingressPorts
+  pPrint egressPorts
