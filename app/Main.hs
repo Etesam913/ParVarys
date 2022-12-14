@@ -8,6 +8,7 @@ import Generator
     generateProblem)
 import Controller
   ( toCoflows,
+    getSwitchBandwidth,
     getGamma,
   )
 
@@ -50,8 +51,10 @@ main = do
   pPrint problem
 
   let coflows = toCoflows problem
+      switchBwTbl = getSwitchBandwidth problem
   pPrint coflows
+  pPrint switchBwTbl
 
   mapM_ (\(cid, coflow) ->
-    putStrLn $ show cid ++ ": " ++ show (getGamma coflow)) $
+    putStrLn $ show cid ++ ": " ++ show (getGamma switchBwTbl coflow)) $
     Map.toList coflows

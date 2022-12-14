@@ -1,11 +1,14 @@
 module Controller
   ( Coflow(..),
     toCoflows,
+    getSwitchBandwidth,
     getGamma,
   )
 where
 
 import qualified Data.Map as Map
+import Data.Maybe (fromMaybe)
+import Data.Ratio ( (%) )
 
 import Generator
   ( CSP(..),
@@ -13,8 +16,10 @@ import Generator
     Switch(..),
   )
 
-type Switch2Flow = Map.Map Integer [Flow]
-type CoflowMap = Map.Map Integer Coflow
+data FlowDirection = Ingress | Egress deriving (Eq, Show)
+
+instance Ord FlowDirection where
+  a <= b = case (a, b) of { (Egress, Ingress) -> False; _ -> True }
 
 data Coflow = Coflow
   Integer     -- coflow id 
@@ -23,7 +28,12 @@ data Coflow = Coflow
   Switch2Flow -- flows grouped by egress switch
   deriving (Show)
 
-toCoflows :: CSP -> Map.Map Integer Coflow
+type Switch2Flow = Map.Map Integer [Flow]
+type CoflowMap = Map.Map Integer Coflow
+type BandwidthTable = Map.Map (Integer, FlowDirection) Integer
+
+
+toCoflows :: CSP -> CoflowMap
 toCoflows csp =
   foldl update Map.empty $ ingressSwitches csp
   where
@@ -53,16 +63,27 @@ toCoflows csp =
       foldl addFlow currMap $ zip (repeat $ iId switch) (flows switch)
 
 
--- TODO: return Integer for now since Rem(P) is constant
-getGamma :: Coflow -> Integer
-getGamma (Coflow _ _ ingressFlows egressFlows) =
+getSwitchBandwidth :: CSP -> BandwidthTable
+getSwitchBandwidth csp =
+  Map.fromList $ concatMap f switches where
+    f (Switch sid _ iBw eBw) = [((sid, Ingress), iBw), ((sid, Egress), eBw)]
+    switches = ingressSwitches csp ++ egressSwitches csp
+
+
+getGamma :: BandwidthTable -> Coflow -> Rational
+getGamma bwTbl (Coflow _ _ ingressFlows egressFlows) =
   max ingressBottleneck egressBottleneck
-  where 
-    sumFlows :: [Flow] -> Integer
-    sumFlows =  foldl (\a el -> a + size el) 0
+  where
+    sumFlows :: (Integer, [Flow]) -> (Integer, Integer)
+    sumFlows (switchId, flows) =  (switchId, foldl (\a el -> a + size el) 0 flows)
 
-    ingressSize = map (sumFlows . snd) $ Map.toList ingressFlows
-    egressSize  = map (sumFlows . snd) $ Map.toList egressFlows
+    calcTime :: FlowDirection -> (Integer, Integer) -> Rational
+    calcTime flowDir (switchId, flowSize) =
+      fromInteger flowSize % fromInteger bandwidth
+      where bandwidth = fromMaybe 0 $ Map.lookup (switchId, flowDir) bwTbl
 
-    ingressBottleneck = maximum ingressSize
-    egressBottleneck = maximum egressSize
+    ingressTimes = map (calcTime Ingress . sumFlows) $ Map.toList ingressFlows
+    egressTimes  = map (calcTime Egress  . sumFlows) $ Map.toList egressFlows
+
+    ingressBottleneck = maximum ingressTimes
+    egressBottleneck = maximum egressTimes
