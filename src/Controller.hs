@@ -74,7 +74,7 @@ getSwitchBandwidth csp =
 
 getGamma :: BandwidthTable -> Coflow -> Rational
 getGamma bwTbl (Coflow _ _ ingressFlows egressFlows) =
-  max ingressBottleneck egressBottleneck
+  max (maximum ingressTimes) (maximum egressTimes)
   where
     sumFlows :: (Integer, [Flow]) -> (Integer, Integer)
     sumFlows (switchId, flows) =  (switchId, foldl (\a el -> a + size el) 0 flows)
@@ -87,11 +87,8 @@ getGamma bwTbl (Coflow _ _ ingressFlows egressFlows) =
     ingressTimes = map (calcTime Ingress . sumFlows) $ Map.toList ingressFlows
     egressTimes  = map (calcTime Egress  . sumFlows) $ Map.toList egressFlows
 
-    ingressBottleneck = maximum ingressTimes
-    egressBottleneck = maximum egressTimes
 
-
--- Given a Coflow Scheduling Problem, use Shortest Effective Bottlenect First
+-- Given a Coflow Scheduling Problem, use Shortest Effective Bottleneck First
 -- heuristic to order the Coflows.
 --
 -- Returns a list of (coflow id, effective bottleneck)
