@@ -2,52 +2,55 @@
 {-# LANGUAGE GADTs #-}
 
 module Sequential
-  ( getSequentialOrdering,
+  ( RandomFlowSpec(..),
+    RandomSwitchSpec(..),
+    Flow(..),
+    Switch(..),
+    CSP(..),
+    generateProblem,
   )
 where
 
 import System.Random (randomRIO)
-import Text.Pretty.Simple (pPrint)
 
--- DATA TYPES:
-data IngressPort = IngressPort
+data Switch = Switch
   { iId :: Integer,
-    -- The 4 rows for a virtual output queue
-    rows :: (Row, Row, Row, Row),
-    iBandwidth :: Float
-  }
-  deriving (Show)
-
-data EgressPort = EgressPort
-  { eId :: Integer,
-    eBandwidth :: Float
+    flows :: [Flow],
+    iBandwidth :: Integer,
+    eBandwidth :: Integer
   }
   deriving (Show)
 
 data Flow = Flow
   { coflowId :: Integer,
-    size :: Float,
+    size :: Integer,
     -- the egress port id that the flow goes to
     destinationId :: Integer
   }
   deriving (Show)
 
-data Row where
-  Row :: {flows :: [Flow]} -> Row
+-- Coflow Scheduling Problem
+data CSP = CSP
+  { ingressSwitches :: [Switch],
+    egressSwitches  :: [Switch]
+  }
   deriving (Show)
 
--- GENERAL VARIABLES:
-numOfPorts :: Integer
-numOfPorts = 2
+data RandomFlowSpec = RandomFlowSpec {
+  minSwitchId :: Integer,
+  maxSwitchId :: Integer,
+  minCoflowId :: Integer,
+  maxCoflowId :: Integer,
+  minFlowSize :: Integer,
+  maxFlowSize :: Integer
+}
 
-numOfRows :: Integer
-numOfRows = 4
-
-numOfCoflows :: Integer
-numOfCoflows = 4
-
-maxNumOfFlowsInRow :: Integer
-maxNumOfFlowsInRow = 5
+data RandomSwitchSpec = RandomSwitchSpec {
+  minFlows :: Integer,
+  maxFlows :: Integer,
+  ingressBandwidth :: Integer,
+  egressBandwidth :: Integer
+}
 
 -- FUNCTIONS:
 -- Generates random Integer from lb to ub (inclusive? Yes)
@@ -55,42 +58,37 @@ generateRandomNum :: Integer -> Integer -> IO Integer
 generateRandomNum lb ub = do
   randomRIO (lb, ub :: Integer)
 
-addFlows :: (Eq t, Num t) => [Flow] -> t -> IO [Flow]
-addFlows arr 0 = do return arr
-addFlows arr n = do
-  randomCoflowId <- generateRandomNum 1 numOfCoflows
-  randomEgressPortId <- generateRandomNum 1 numOfPorts
-  addFlows (Flow randomCoflowId 2 randomEgressPortId : arr) (n - 1)
+generateFlows :: RandomFlowSpec -> Integer -> IO [Flow]
+generateFlows spec n =
+  if (n <= 0) then do
+    return []
+  else do
+    flows <- generateFlows spec $ n - 1
+    coflowId <- generateRandomNum (minCoflowId spec) (maxCoflowId spec)
+    egressSwitchId <- generateRandomNum (minSwitchId spec) (maxSwitchId spec)
+    flowSize <- generateRandomNum (minFlowSize spec) (maxFlowSize spec)
 
--- Generates Flows that go in each row
-generateFlows :: IO [Flow]
-generateFlows = do
-  numOfFlows <- generateRandomNum 0 maxNumOfFlowsInRow
-  addFlows [] numOfFlows
+    return $ Flow coflowId flowSize egressSwitchId : flows
 
-addRows :: Monad m => [Row] -> [m [Flow]] -> m [Row]
-addRows arr [] = do return arr
-addRows arr (f : fs) = do
-  currentFlows <- f
-  addRows (Row currentFlows : arr) fs
+generateSwitches :: RandomFlowSpec -> RandomSwitchSpec -> Integer -> Integer -> IO [Switch]
+generateSwitches flowSpec switchSpec minId maxId =
+  if (maxId - minId < 0) then do
+    return []
+  else do
+    numOfFlows <- generateRandomNum (minFlows switchSpec) (maxFlows switchSpec)
+    flows <- generateFlows flowSpec numOfFlows
+    let switch = Switch minId flows (ingressBandwidth switchSpec) (egressBandwidth switchSpec)
 
-generateRows :: IO [Row]
-generateRows = do
-  -- generate flows for each row
-  let rowFlows = [generateFlows | _ <- [1 .. numOfRows]]
-  addRows [] rowFlows
+    switches <- generateSwitches flowSpec switchSpec (minId + 1) maxId
+    return $ switch : switches
 
-generateIngressPorts :: [IngressPort] -> Integer -> IO [IngressPort]
-generateIngressPorts arr 0 = return arr
-generateIngressPorts arr n = do
-  (r1 : r2 : r3 : r4 : _) <- generateRows
-  generateIngressPorts (IngressPort n (r1, r2, r3, r4) 2 : arr) (n -1)
+generateProblem :: RandomFlowSpec -> RandomSwitchSpec -> RandomSwitchSpec -> Integer -> Integer -> IO CSP
+generateProblem flowSpec ingressSwitchSpec egressSwitchSpec numIngress numEgress = do
+  let (minIngressId, maxIngressId) = (1, numIngress)
+      (minEgressId, maxEgressId) = (numIngress + 1, numIngress + numEgress)
 
--- This the func that gets exports
-getSequentialOrdering :: IO ()
-getSequentialOrdering = do
-  ingressPorts <- generateIngressPorts [] numOfPorts
-  let egressPorts = [EgressPort x 2 | x <- [1 .. numOfPorts]]
+  iSwitches <- generateSwitches flowSpec ingressSwitchSpec minIngressId maxIngressId
+  eSwitches  <- generateSwitches flowSpec egressSwitchSpec minEgressId maxEgressId 
 
-  pPrint ingressPorts
-  pPrint egressPorts
+  return $ CSP iSwitches eSwitches
+   
