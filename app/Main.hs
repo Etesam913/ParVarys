@@ -4,6 +4,9 @@ import Generator
   ( RandomFlowSpec(..),
     RandomSwitchSpec(..),
     generateProblem)
+import Controller
+  ( toCoflows,
+  )
 
 main :: IO ()
 main = do
@@ -42,3 +45,6 @@ main = do
 
   problem <- generateProblem flowSpec ingressSwitchSpec egressSwitchSpec numIngress numEgress
   pPrint problem
+
+  let coflows = toCoflows problem
+  pPrint coflows
