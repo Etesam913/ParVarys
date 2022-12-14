@@ -24,6 +24,7 @@ dependencies:
   - pretty-simple
   - random
   - containers
+  - utility-ht
 ghc-options:
   - -Wall
   - -Wcompat

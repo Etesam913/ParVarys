@@ -37,6 +37,7 @@ library
     , containers
     , pretty-simple
     , random
+    , utility-ht
   default-language: Haskell2010
 
 executable ParVarys-exe
@@ -52,6 +53,7 @@ executable ParVarys-exe
     , containers
     , pretty-simple
     , random
+    , utility-ht
   default-language: Haskell2010
 
 test-suite ParVarys-test
@@ -68,4 +70,5 @@ test-suite ParVarys-test
     , containers
     , pretty-simple
     , random
+    , utility-ht
   default-language: Haskell2010

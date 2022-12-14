@@ -3,10 +3,12 @@ module Controller
     toCoflows,
     getSwitchBandwidth,
     getGamma,
+    sebf,
   )
 where
 
 import qualified Data.Map as Map
+import qualified Data.List.Key as Key
 import Data.Maybe (fromMaybe)
 import Data.Ratio ( (%) )
 
@@ -87,3 +89,16 @@ getGamma bwTbl (Coflow _ _ ingressFlows egressFlows) =
 
     ingressBottleneck = maximum ingressTimes
     egressBottleneck = maximum egressTimes
+
+
+-- Given a Coflow Scheduling Problem, use Shortest Effective Bottlenect First
+-- heuristic to order the Coflows.
+--
+-- Returns a list of (coflow id, effective bottleneck)
+sebf :: CSP -> [(Integer, Rational)]
+sebf csp =
+  Key.sort snd $ map f coflows
+  where
+    switchLinkRates = getSwitchBandwidth csp
+    coflows = Map.toList $ toCoflows csp
+    f (cid, coflow) = (cid, getGamma switchLinkRates coflow)

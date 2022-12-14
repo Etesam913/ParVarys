@@ -10,6 +10,7 @@ import Controller
   ( toCoflows,
     getSwitchBandwidth,
     getGamma,
+    sebf
   )
 
 main :: IO ()
@@ -55,6 +56,4 @@ main = do
   pPrint coflows
   pPrint switchBwTbl
 
-  mapM_ (\(cid, coflow) ->
-    putStrLn $ show cid ++ ": " ++ show (getGamma switchBwTbl coflow)) $
-    Map.toList coflows
+  pPrint $ sebf problem
