@@ -1,6 +1,7 @@
 module Controller
   ( Coflow(..),
     toCoflows,
+    getGamma,
   )
 where
 
@@ -50,3 +51,18 @@ toCoflows csp =
     update :: CoflowMap -> Switch -> CoflowMap
     update currMap switch =
       foldl addFlow currMap $ zip (repeat $ iId switch) (flows switch)
+
+
+-- TODO: return Integer for now since Rem(P) is constant
+getGamma :: Coflow -> Integer
+getGamma (Coflow _ _ ingressFlows egressFlows) =
+  max ingressBottleneck egressBottleneck
+  where 
+    sumFlows :: [Flow] -> Integer
+    sumFlows =  foldl (\a el -> a + size el) 0
+
+    ingressSize = map (sumFlows . snd) $ Map.toList ingressFlows
+    egressSize  = map (sumFlows . snd) $ Map.toList egressFlows
+
+    ingressBottleneck = maximum ingressSize
+    egressBottleneck = maximum egressSize

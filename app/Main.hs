@@ -1,3 +1,5 @@
+import qualified Data.Map as Map
+
 import Text.Pretty.Simple (pPrint)
 
 import Generator
@@ -6,6 +8,7 @@ import Generator
     generateProblem)
 import Controller
   ( toCoflows,
+    getGamma,
   )
 
 main :: IO ()
@@ -48,3 +51,7 @@ main = do
 
   let coflows = toCoflows problem
   pPrint coflows
+
+  mapM_ (\(cid, coflow) ->
+    putStrLn $ show cid ++ ": " ++ show (getGamma coflow)) $
+    Map.toList coflows
