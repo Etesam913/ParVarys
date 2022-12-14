@@ -1,6 +1,6 @@
 import Text.Pretty.Simple (pPrint)
 
-import Sequential
+import Generator
   ( RandomFlowSpec(..),
     RandomSwitchSpec(..),
     generateProblem)

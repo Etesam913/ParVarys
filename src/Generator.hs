@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 
-module Sequential
+module Generator
   ( RandomFlowSpec(..),
     RandomSwitchSpec(..),
     Flow(..),
@@ -13,19 +13,19 @@ where
 
 import System.Random (randomRIO)
 
-data Switch = Switch
-  { iId :: Integer,
-    flows :: [Flow],
-    iBandwidth :: Integer,
-    eBandwidth :: Integer
-  }
-  deriving (Show)
-
 data Flow = Flow
   { coflowId :: Integer,
     size :: Integer,
     -- the egress port id that the flow goes to
     destinationId :: Integer
+  }
+  deriving (Show)
+
+data Switch = Switch
+  { iId :: Integer,
+    flows :: [Flow],
+    iBandwidth :: Integer,
+    eBandwidth :: Integer
   }
   deriving (Show)
 

@@ -25,7 +25,7 @@ source-repository head
 
 library
   exposed-modules:
-      Sequential
+      Generator
   other-modules:
       Paths_ParVarys
   hs-source-dirs:
