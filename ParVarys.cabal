@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -25,8 +25,8 @@ source-repository head
 
 library
   exposed-modules:
-      Lib
-      Sequential
+      Controller
+      Generator
   other-modules:
       Paths_ParVarys
   hs-source-dirs:
@@ -34,8 +34,11 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
+    , containers
+    , parallel
     , pretty-simple
     , random
+    , utility-ht
   default-language: Haskell2010
 
 executable ParVarys-exe
@@ -44,12 +47,15 @@ executable ParVarys-exe
       Paths_ParVarys
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -eventlog -with-rtsopts=-N
   build-depends:
       ParVarys
     , base >=4.7 && <5
+    , containers
+    , parallel
     , pretty-simple
     , random
+    , utility-ht
   default-language: Haskell2010
 
 test-suite ParVarys-test
@@ -61,8 +67,12 @@ test-suite ParVarys-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      ParVarys
+      HUnit
+    , ParVarys
     , base >=4.7 && <5
+    , containers
+    , parallel
     , pretty-simple
     , random
+    , utility-ht
   default-language: Haskell2010

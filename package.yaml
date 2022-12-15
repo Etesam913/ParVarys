@@ -23,6 +23,9 @@ dependencies:
   - base >= 4.7 && < 5
   - pretty-simple
   - random
+  - containers
+  - utility-ht
+  - parallel
 ghc-options:
   - -Wall
   - -Wcompat
@@ -44,6 +47,7 @@ executables:
     ghc-options:
       - -threaded
       - -rtsopts
+      - -eventlog
       - -with-rtsopts=-N
     dependencies:
       - ParVarys
@@ -60,3 +64,4 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - ParVarys
+      - HUnit
