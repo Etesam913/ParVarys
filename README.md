@@ -6,7 +6,7 @@ A parallel implemention of the Varys algorithm coded in Haskell.
 
 To learn more about the Varys algorithm see this paper:
 
-https://dl.acm.org/doi/10.1145/3230543.3230569
+https://dl.acm.org/doi/10.1145/2619239.2626315
 
 ## ✍️ Authors
 
@@ -52,28 +52,15 @@ For more information see this: https://wiki.haskell.org/ThreadScope
 
 ### Trying a more involved example
 
-We want to run the hellofib function in parallel
+This command runs the ParVarys executable using 4 cores, and generates the
+event log `ParVarys-exe.eventlog`:
 
 ```bash
-cabal install --lib parallel
+stack exec ParVarys-exe -- +RTS -N4 -lf
 ```
 
-#### Create the executable
+To visualize the event log using threadscope
 
 ```bash
-ghc -O2 -rtsopts -eventlog -threaded src/hellofib.hs
-```
-
-#### Run the executable in parallel
-
-This command runs the program with 4 cores.
-
-```bash
-./src/hellofib +RTS -N4 -l
-```
-
-To see the threadscope output
-
-```bash
-threadscope hellofib.eventlog
+threadscope ParVarys-exe.eventlog &
 ```

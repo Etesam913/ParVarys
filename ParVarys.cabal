@@ -35,6 +35,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , parallel
     , pretty-simple
     , random
     , utility-ht
@@ -46,11 +47,12 @@ executable ParVarys-exe
       Paths_ParVarys
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -eventlog -with-rtsopts=-N
   build-depends:
       ParVarys
     , base >=4.7 && <5
     , containers
+    , parallel
     , pretty-simple
     , random
     , utility-ht
@@ -69,6 +71,7 @@ test-suite ParVarys-test
     , ParVarys
     , base >=4.7 && <5
     , containers
+    , parallel
     , pretty-simple
     , random
     , utility-ht
