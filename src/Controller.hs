@@ -4,9 +4,11 @@ module Controller
     getSwitchBandwidth,
     getGamma,
     sebf,
+    parSebf,
   )
 where
 
+import Control.Parallel.Strategies (parMap, rdeepseq)
 import qualified Data.Map as Map
 import qualified Data.List.Key as Key
 import Data.Maybe (fromMaybe)
@@ -95,6 +97,15 @@ getGamma bwTbl (Coflow _ _ ingressFlows egressFlows) =
 sebf :: CSP -> [(Integer, Rational)]
 sebf csp =
   Key.sort snd $ map f coflows
+  where
+    switchLinkRates = getSwitchBandwidth csp
+    coflows = Map.toList $ toCoflows csp
+    f (cid, coflow) = (cid, getGamma switchLinkRates coflow)
+
+-- Parallel version of sebf
+parSebf :: CSP -> [(Integer, Rational)]
+parSebf csp =
+  Key.sort snd $ parMap rdeepseq f coflows
   where
     switchLinkRates = getSwitchBandwidth csp
     coflows = Map.toList $ toCoflows csp

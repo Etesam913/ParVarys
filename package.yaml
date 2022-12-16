@@ -26,6 +26,7 @@ dependencies:
   - containers
   - utility-ht
   - parallel
+  - deepseq
 ghc-options:
   - -Wall
   - -Wcompat
@@ -45,8 +46,8 @@ executables:
     main: Main.hs
     source-dirs: app
     ghc-options:
-      - -threaded
       - -rtsopts
+      - -threaded
       - -eventlog
       - -with-rtsopts=-N
     dependencies:
