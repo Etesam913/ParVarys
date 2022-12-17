@@ -12,6 +12,7 @@ module Generator
   )
 where
 
+import Control.DeepSeq (NFData, rnf)
 import System.Random (randomRIO)
 
 data Flow = Flow
@@ -20,6 +21,9 @@ data Flow = Flow
     destinationId :: Int
   }
   deriving (Show)
+
+instance NFData Flow where
+  rnf (Flow cid size dId) = cid `seq` size `seq` dId `seq` ()
 
 data Switch = Switch
   { iId :: Int,

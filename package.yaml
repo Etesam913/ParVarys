@@ -29,6 +29,7 @@ dependencies:
   - deepseq
   - clock
   - formatting
+  - split
 ghc-options:
   - -Wall
   - -Wcompat

@@ -41,6 +41,7 @@ library
     , parallel
     , pretty-simple
     , random
+    , split
     , utility-ht
   default-language: Haskell2010
 
@@ -62,6 +63,7 @@ executable ParVarys-exe
     , parallel
     , pretty-simple
     , random
+    , split
     , utility-ht
   default-language: Haskell2010
 
@@ -84,5 +86,6 @@ test-suite ParVarys-test
     , parallel
     , pretty-simple
     , random
+    , split
     , utility-ht
   default-language: Haskell2010
