@@ -58,6 +58,7 @@ executables:
       - random
       - clock
       - formatting
+      - optparse-applicative
 
 tests:
   ParVarys-test:
