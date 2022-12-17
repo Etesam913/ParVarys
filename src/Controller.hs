@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 module Controller
   ( Coflow(..),
     toCoflows,
@@ -26,28 +28,28 @@ instance Ord FlowDirection where
   a <= b = case (a, b) of { (Egress, Ingress) -> False; _ -> True }
 
 data Coflow = Coflow
-  Integer     -- coflow id 
+  Int         -- coflow id
   [Flow]      -- all flows belonging to this coflow
   Switch2Flow -- flows grouped by ingress switch
   Switch2Flow -- flows grouped by egress switch
   deriving (Show)
 
-type Switch2Flow = Map.Map Integer [Flow]
-type CoflowMap = Map.Map Integer Coflow
-type BandwidthTable = Map.Map (Integer, FlowDirection) Integer
+type Switch2Flow = Map.Map Int [Flow]
+type CoflowMap = Map.Map Int Coflow
+type BandwidthTable = Map.Map (Int, FlowDirection) Int
 
 
 toCoflows :: CSP -> CoflowMap
 toCoflows csp =
   foldl update Map.empty $ ingressSwitches csp
   where
-    updateMap :: Integer -> Flow -> Switch2Flow -> Switch2Flow
+    updateMap :: Int -> Flow -> Switch2Flow -> Switch2Flow
     updateMap k v =
       Map.alter f k
       where f pv = case pv of Nothing -> Just [v]
                               Just vs -> Just $ v : vs
 
-    addFlow :: CoflowMap -> (Integer, Flow) -> CoflowMap
+    addFlow :: CoflowMap -> (Int, Flow) -> CoflowMap
     addFlow currMap (ingressPort,flow) =
        Map.alter f (coflowId flow) currMap
        where egressPort = destinationId flow
@@ -78,12 +80,12 @@ getGamma :: BandwidthTable -> Coflow -> Rational
 getGamma bwTbl (Coflow _ _ ingressFlows egressFlows) =
   max (maximum ingressTimes) (maximum egressTimes)
   where
-    sumFlows :: (Integer, [Flow]) -> (Integer, Integer)
+    sumFlows :: (Int, [Flow]) -> (Int, Int)
     sumFlows (switchId, flows) =  (switchId, foldl (\a el -> a + size el) 0 flows)
 
-    calcTime :: FlowDirection -> (Integer, Integer) -> Rational
+    calcTime :: FlowDirection -> (Int, Int) -> Rational
     calcTime flowDir (switchId, flowSize) =
-      fromInteger flowSize % fromInteger bandwidth
+      fromIntegral flowSize % fromIntegral bandwidth
       where bandwidth = fromMaybe 0 $ Map.lookup (switchId, flowDir) bwTbl
 
     ingressTimes = map (calcTime Ingress . sumFlows) $ Map.toList ingressFlows
@@ -94,7 +96,7 @@ getGamma bwTbl (Coflow _ _ ingressFlows egressFlows) =
 -- heuristic to order the Coflows.
 --
 -- Returns a list of (coflow id, effective bottleneck)
-sebf :: CSP -> [(Integer, Rational)]
+sebf :: CSP -> [(Int, Rational)]
 sebf csp =
   Key.sort snd $ map f coflows
   where
@@ -103,7 +105,7 @@ sebf csp =
     f (cid, coflow) = (cid, getGamma switchLinkRates coflow)
 
 -- Parallel version of sebf
-parSebf :: CSP -> [(Integer, Rational)]
+parSebf :: CSP -> [(Int, Rational)]
 parSebf csp =
   Key.sort snd $ parMap rdeepseq f coflows
   where

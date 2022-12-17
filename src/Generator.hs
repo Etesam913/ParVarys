@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Generator
   ( RandomFlowSpec(..),
@@ -14,18 +15,17 @@ where
 import System.Random (randomRIO)
 
 data Flow = Flow
-  { coflowId :: Integer,
-    size :: Integer,
-    -- the egress port id that the flow goes to
-    destinationId :: Integer
+  { coflowId :: Int,
+    size :: Int,
+    destinationId :: Int
   }
   deriving (Show)
 
 data Switch = Switch
-  { iId :: Integer,
+  { iId :: Int,
     flows :: [Flow],
-    iBandwidth :: Integer,
-    eBandwidth :: Integer
+    iBandwidth :: Int,
+    eBandwidth :: Int
   }
   deriving (Show)
 
@@ -37,30 +37,30 @@ data CSP = CSP
   deriving (Show)
 
 data RandomFlowSpec = RandomFlowSpec {
-  minSwitchId :: Integer,
-  maxSwitchId :: Integer,
-  minCoflowId :: Integer,
-  maxCoflowId :: Integer,
-  minFlowSize :: Integer,
-  maxFlowSize :: Integer
+  minSwitchId :: Int,
+  maxSwitchId :: Int,
+  minCoflowId :: Int,
+  maxCoflowId :: Int,
+  minFlowSize :: Int,
+  maxFlowSize :: Int
 }
 
 data RandomSwitchSpec = RandomSwitchSpec {
-  minFlows :: Integer,
-  maxFlows :: Integer,
-  ingressBandwidth :: Integer,
-  egressBandwidth :: Integer
+  minFlows :: Int,
+  maxFlows :: Int,
+  ingressBandwidth :: Int,
+  egressBandwidth :: Int
 }
 
 -- FUNCTIONS:
 -- Generates random Integer from lb to ub (inclusive? Yes)
-generateRandomNum :: Integer -> Integer -> IO Integer
+generateRandomNum :: Int -> Int -> IO Int
 generateRandomNum lb ub = do
-  randomRIO (lb, ub :: Integer)
+  randomRIO (lb, ub)
 
-generateFlows :: RandomFlowSpec -> Integer -> IO [Flow]
+generateFlows :: RandomFlowSpec -> Int -> IO [Flow]
 generateFlows spec n =
-  if (n <= 0) then do
+  if n <= 0 then do
     return []
   else do
     flows <- generateFlows spec $ n - 1
@@ -70,9 +70,9 @@ generateFlows spec n =
 
     return $ Flow coflowId flowSize egressSwitchId : flows
 
-generateSwitches :: RandomFlowSpec -> RandomSwitchSpec -> Integer -> Integer -> IO [Switch]
+generateSwitches :: RandomFlowSpec -> RandomSwitchSpec -> Int -> Int -> IO [Switch]
 generateSwitches flowSpec switchSpec minId maxId =
-  if (maxId - minId < 0) then do
+  if maxId - minId < 0 then do
     return []
   else do
     numOfFlows <- generateRandomNum (minFlows switchSpec) (maxFlows switchSpec)
@@ -82,7 +82,7 @@ generateSwitches flowSpec switchSpec minId maxId =
     switches <- generateSwitches flowSpec switchSpec (minId + 1) maxId
     return $ switch : switches
 
-generateProblem :: RandomFlowSpec -> RandomSwitchSpec -> RandomSwitchSpec -> Integer -> Integer -> IO CSP
+generateProblem :: RandomFlowSpec -> RandomSwitchSpec -> RandomSwitchSpec -> Int -> Int -> IO CSP
 generateProblem flowSpec ingressSwitchSpec egressSwitchSpec numIngress numEgress = do
   let (minIngressId, maxIngressId) = (1, numIngress)
       (minEgressId, maxEgressId) = (numIngress + 1, numIngress + numEgress)
