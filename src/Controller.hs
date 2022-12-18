@@ -3,6 +3,7 @@
 module Controller
   ( Coflow(..),
     toCoflows,
+    parToCoflows,
     getSwitchBandwidth,
     getGamma,
     sebf,
@@ -72,6 +73,15 @@ update :: CoflowMap -> Switch -> CoflowMap
 update currMap switch =
   foldl addFlow currMap $ zip (repeat $ iId switch) (flows switch)
 
+-- Assumes that the coflowId of the two coflows passed in are the same
+mergeCoflow :: Coflow -> Coflow -> Coflow
+mergeCoflow
+  (Coflow cid flows ingress egress) (Coflow _ flows' ingress' egress') =
+    Coflow cid
+          (flows ++ flows')
+          (Map.unionWith (++) ingress ingress')
+          (Map.unionWith (++) egress egress')
+
 toCoflows :: CSP -> CoflowMap
 toCoflows csp =
   foldl update Map.empty $ ingressSwitches csp
@@ -81,7 +91,7 @@ parToCoflows csp =
   let
     switchess = chunksOf 20 $ ingressSwitches csp
   in
-    foldl Map.union Map.empty $
+    Map.unionsWith mergeCoflow  $
       parMap rdeepseq (foldl update Map.empty) switchess
 
 getSwitchBandwidth :: CSP -> BandwidthTable

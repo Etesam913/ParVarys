@@ -1,17 +1,19 @@
 import Data.Ratio ( (%) )
+import System.Random ( mkStdGen, setStdGen )
 import Test.HUnit
 
-import Controller
-  ( sebf,
-  )
+import Controller ( sebf, parSebf )
 import Generator
   ( Switch(..),
     Flow(..),
     CSP(..),
+    RandomFlowSpec(..),
+    RandomSwitchSpec(..),
+    generateProblem,
   )
 
-sebf1 :: Test
-sebf1 = TestCase (do
+testSebf1 :: Test
+testSebf1 = TestCase (do
   let
     csp = CSP {
       ingressSwitches = [
@@ -43,8 +45,8 @@ sebf1 = TestCase (do
 
   assertEqual "" [(2, 2 % 1), (1, 4 % 1)] $ sebf csp)
 
-sebf2 :: Test
-sebf2 = TestCase (do
+testSebf2 :: Test
+testSebf2 = TestCase (do
   let
     csp = CSP {
       ingressSwitches = [
@@ -77,9 +79,25 @@ sebf2 = TestCase (do
 
   assertEqual "" [(1, 2 % 1), (2, 4 % 1)] $ sebf csp)
 
+-- validate the correctness of parallel implementation using
+-- the sequential implementation of SEBF
+testParSebf1 :: Test
+testParSebf1 = TestCase (do
+  let seed = 91845734 
+      flowSpec = RandomFlowSpec {
+        minSwitchId=201, maxSwitchId=400,
+        minCoflowId=1, maxCoflowId=1000, minFlowSize=0, maxFlowSize=100 }
+      ingressSpec = RandomSwitchSpec 0 100 40 40
+      egressSpec  = RandomSwitchSpec 0 0 40 40
+
+  setStdGen $ mkStdGen seed
+  problem <- generateProblem flowSpec ingressSpec egressSpec 200 200
+  assertEqual "" (sebf problem) (parSebf problem))
+
 
 main :: IO Counts
 main =
   runTestTT $
-    TestList [ "SEBF Sequential (varys_paper_fig1)" ~: sebf1,
-               "SEBF Sequential (variable_link_rates)" ~: sebf2 ]
+    TestList [ "SEBF Sequential (varys_paper_fig1)" ~: testSebf1,
+               "SEBF Sequential (variable_link_rates)" ~: testSebf2,
+               "SEBF Parallel   (parMap)" ~: testParSebf1 ]
