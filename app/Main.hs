@@ -1,38 +1,43 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-import Control.DeepSeq (force)
-import Control.Exception (evaluate)
-import Control.Monad (join)
-import Formatting (fprintLn)
-import Formatting.Clock (timeSpecs)
-import Generator
-  ( RandomFlowSpec (..),
-    RandomSwitchSpec (..),
-    generateProblem,
-  )
-import Options.Applicative
-import System.Clock
-import System.Exit (die)
-import System.Random (mkStdGen, setStdGen)
+import           Control.DeepSeq                ( force )
+import           Control.Exception              ( evaluate )
+import           Control.Monad                  ( join )
+import           Formatting                     ( fprintLn )
+import           Formatting.Clock               ( timeSpecs )
+import           Generator                      ( RandomFlowSpec(..)
+                                                , RandomSwitchSpec(..)
+                                                , generateProblem
+                                                )
+import           Options.Applicative
+import           System.Clock
+import           System.Exit                    ( die )
+import           System.Random                  ( mkStdGen
+                                                , setStdGen
+                                                )
 
-import Controller (parSebf, sebf)
+import           Controller                     ( parSebf
+                                                , sebf
+                                                )
 
 -- Arg Parser template adapted from:
 --  https://ro-che.info/articles/2016-12-30-optparse-applicative-quick-start
 main :: IO ()
-main = join . customExecParser (prefs showHelpOnError) $
-  info (helper <*> parser)
+main = join . customExecParser (prefs showHelpOnError) $ info
+  (helper <*> parser)
   (  fullDesc
   <> header "ParVarys: Parallel Varys Coflow Scheduling Using SEBF "
-  <> progDesc ("Generates an offline coflow scheduling problem, and uses the " ++
-               "Varys Shortest Effective Bottlneck First heuristic to order "  ++
-               "the coflows.")
+  <> progDesc
+       (  "Generates an offline coflow scheduling problem, and uses the "
+       ++ "Varys Shortest Effective Bottlneck First heuristic to order "
+       ++ "the coflows."
+       )
   )
-  where
-    parser :: Parser (IO ())
-    parser =
-      work
-        <$> strOption
+ where
+  parser :: Parser (IO ())
+  parser =
+    work
+      <$> strOption
             (  long "type"
             <> short 't'
             <> metavar "STRING"
@@ -40,7 +45,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value "parMap"
             <> showDefault
             )
-        <*> option auto
+      <*> option
+            auto
             (  long "coflows"
             <> short 'n'
             <> metavar "NUMBER"
@@ -48,7 +54,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 4000
             <> showDefault
             )
-        <*> option auto
+      <*> option
+            auto
             (  long "ingress"
             <> short 'i'
             <> metavar "NUMBER"
@@ -56,7 +63,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 1000
             <> showDefault
             )
-        <*> option auto
+      <*> option
+            auto
             (  long "egress"
             <> short 'e'
             <> metavar "NUMBER"
@@ -64,7 +72,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 1000
             <> showDefault
             )
-        <*> option auto
+      <*> option
+            auto
             (  long "min-flow-size"
             <> short 's'
             <> metavar "NUMBER"
@@ -72,7 +81,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 0
             <> showDefault
             )
-        <*> option auto
+      <*> option
+            auto
             (  long "max-flow-size"
             <> short 'S'
             <> metavar "NUMBER"
@@ -80,7 +90,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 1000
             <> showDefault
             )
-        <*> option auto
+      <*> option
+            auto
             (  long "min-switch-flows"
             <> short 'f'
             <> metavar "NUMBER"
@@ -88,7 +99,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 0
             <> showDefault
             )
-        <*> option auto
+      <*> option
+            auto
             (  long "max-switch-flows"
             <> short 'F'
             <> metavar "NUMBER"
@@ -96,7 +108,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 5000
             <> showDefault
             )
-        <*> option auto
+      <*> option
+            auto
             (  long "ingress-bandwith"
             <> short 'b'
             <> metavar "NUMBER"
@@ -104,7 +117,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 40
             <> showDefault
             )
-        <*> option auto
+      <*> option
+            auto
             (  long "egress-bandwith"
             <> short 'B'
             <> metavar "NUMBER"
@@ -112,7 +126,8 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 40
             <> showDefault
             )
-        <*> option auto
+      <*> option
+            auto
             (  long "seed"
             <> metavar "NUMBER"
             <> help "Seed for global pseudo-random number generator"
@@ -121,42 +136,63 @@ main = join . customExecParser (prefs showHelpOnError) $
             )
 
 
-work :: String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> IO ()
-work mode numCoflows numIngress numEgress minFlowSize maxFlowSize minFlows
-  maxFlows ingressBandwidth egressBandwidth seed = do
-  sebfImpl <-
-    case mode of
+work
+  :: String
+  -> Int
+  -> Int
+  -> Int
+  -> Int
+  -> Int
+  -> Int
+  -> Int
+  -> Int
+  -> Int
+  -> Int
+  -> IO ()
+work mode numCoflows numIngress numEgress minFlowSize maxFlowSize minFlows maxFlows ingressBandwidth egressBandwidth seed
+  = do
+    sebfImpl <- case mode of
       "seq"    -> return sebf
       "parMap" -> return parSebf
-      _        -> die $
-                    "Unrecognized varys mode: " ++
-                    "expect one of seq, parMap, got " ++ show mode
+      _ ->
+        die
+          $  "Unrecognized varys mode: "
+          ++ "expect one of seq, parMap, got "
+          ++ show mode
 
-  let
-    flowSpec = RandomFlowSpec
-      { minSwitchId = numIngress + 1,
-        maxSwitchId = numIngress + numEgress,
-        minCoflowId = 1,
-        maxCoflowId = numCoflows,
-        minFlowSize,
-        maxFlowSize
-      }
+    let flowSpec = RandomFlowSpec { minSwitchId = numIngress + 1
+                                  , maxSwitchId = numIngress + numEgress
+                                  , minCoflowId = 1
+                                  , maxCoflowId = numCoflows
+                                  , minFlowSize
+                                  , maxFlowSize
+                                  }
 
-    ingressSwitchSpec = RandomSwitchSpec
-      { minFlows, maxFlows, ingressBandwidth, egressBandwidth }
+        ingressSwitchSpec = RandomSwitchSpec { minFlows
+                                             , maxFlows
+                                             , ingressBandwidth
+                                             , egressBandwidth
+                                             }
 
-    egressSwitchSpec = RandomSwitchSpec
-      { minFlows = 0, maxFlows = 0, ingressBandwidth, egressBandwidth }
+        egressSwitchSpec = RandomSwitchSpec { minFlows         = 0
+                                            , maxFlows         = 0
+                                            , ingressBandwidth
+                                            , egressBandwidth
+                                            }
 
-  -- seed the global pseudo-random number generator
-  -- for reproducibility of CSP problems
-  setStdGen $ mkStdGen seed
-  problem <- generateProblem flowSpec ingressSwitchSpec egressSwitchSpec numIngress numEgress
+    -- seed the global pseudo-random number generator
+    -- for reproducibility of CSP problems
+    setStdGen $ mkStdGen seed
+    problem <- generateProblem flowSpec
+                               ingressSwitchSpec
+                               egressSwitchSpec
+                               numIngress
+                               numEgress
 
-  start <- getTime Monotonic
-  coflowOrder <- evaluate $ force $ sebfImpl problem
-  end <- getTime Monotonic
+    start       <- getTime Monotonic
+    coflowOrder <- evaluate $ force $ sebfImpl problem
+    end         <- getTime Monotonic
 
-  print coflowOrder
-  putStr "Calculation Time: "
-  fprintLn timeSpecs start end
+    print coflowOrder
+    putStr "Calculation Time: "
+    fprintLn timeSpecs start end
