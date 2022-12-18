@@ -13,7 +13,8 @@ where
 
 import Control.DeepSeq (NFData, rnf)
 import Control.Parallel.Strategies (parMap, rdeepseq)
-import qualified Data.Map as Map
+import qualified Data.Map.Lazy as Map
+import qualified Data.IntMap.Lazy as IntMap
 import qualified Data.List.Key as Key
 import Data.Maybe (fromMaybe)
 import Data.Ratio ( (%) )
@@ -42,28 +43,28 @@ instance NFData Coflow where
     cid `seq` rnf flows `seq` rnf iFlows `seq` rnf eFlows
 
 
-type Switch2Flow = Map.Map Int [Flow]
-type CoflowMap = Map.Map Int Coflow
+type Switch2Flow = IntMap.IntMap [Flow]
+type CoflowMap = IntMap.IntMap Coflow
 type BandwidthTable = Map.Map (Int, FlowDirection) Int
 
 
 updateMap :: Int -> Flow -> Switch2Flow -> Switch2Flow
 updateMap k v =
-  Map.alter f k
+  IntMap.alter f k
   where f pv = case pv of Nothing -> Just [v]
                           Just vs -> Just $ v : vs
 
 addFlow :: CoflowMap -> (Int, Flow) -> CoflowMap
 addFlow currMap (ingressPort,flow) =
-  Map.alter f (coflowId flow) currMap
+  IntMap.alter f (coflowId flow) currMap
   where
     egressPort = destinationId flow
     f val =
       case val of
         Nothing -> Just $
           Coflow (coflowId flow) [flow]
-                  (Map.singleton ingressPort [flow])
-                  (Map.singleton egressPort  [flow])
+                  (IntMap.singleton ingressPort [flow])
+                  (IntMap.singleton egressPort  [flow])
         Just (Coflow cid coflow flowsByISwitch flowsByESwitch) -> Just $
           Coflow cid (flow : coflow)
                   (updateMap ingressPort flow flowsByISwitch)
@@ -79,20 +80,20 @@ mergeCoflow
   (Coflow cid flows ingress egress) (Coflow _ flows' ingress' egress') =
     Coflow cid
           (flows ++ flows')
-          (Map.unionWith (++) ingress ingress')
-          (Map.unionWith (++) egress egress')
+          (IntMap.unionWith (++) ingress ingress')
+          (IntMap.unionWith (++) egress egress')
 
 toCoflows :: CSP -> CoflowMap
 toCoflows csp =
-  foldl update Map.empty $ ingressSwitches csp
+  foldl update IntMap.empty $ ingressSwitches csp
 
 parToCoflows :: CSP -> CoflowMap
 parToCoflows csp =
   let
-    switchess = chunksOf 20 $ ingressSwitches csp
+    switchess = chunksOf 200 $ ingressSwitches csp
   in
-    Map.unionsWith mergeCoflow  $
-      parMap rdeepseq (foldl update Map.empty) switchess
+    IntMap.unionsWith mergeCoflow  $
+      parMap rdeepseq (foldl update IntMap.empty) switchess
 
 getSwitchBandwidth :: CSP -> BandwidthTable
 getSwitchBandwidth csp =
@@ -113,8 +114,8 @@ getGamma bwTbl (Coflow _ _ ingressFlows egressFlows) =
       fromIntegral flowSize % fromIntegral bandwidth
       where bandwidth = fromMaybe 0 $ Map.lookup (switchId, flowDir) bwTbl
 
-    ingressTimes = map (calcTime Ingress . sumFlows) $ Map.toList ingressFlows
-    egressTimes  = map (calcTime Egress  . sumFlows) $ Map.toList egressFlows
+    ingressTimes = map (calcTime Ingress . sumFlows) $ IntMap.toList ingressFlows
+    egressTimes  = map (calcTime Egress  . sumFlows) $ IntMap.toList egressFlows
 
 
 -- Given a Coflow Scheduling Problem, use Shortest Effective Bottleneck First
@@ -126,7 +127,7 @@ sebf csp =
   Key.sort snd $ map f coflows
   where
     switchLinkRates = getSwitchBandwidth csp
-    coflows = Map.toList $ toCoflows csp
+    coflows = IntMap.toList $ toCoflows csp
     f (cid, coflow) = (cid, getGamma switchLinkRates coflow)
 
 -- Parallel version of sebf
@@ -135,5 +136,5 @@ parSebf csp =
   Key.sort snd $ parMap rdeepseq f coflows
   where
     switchLinkRates = getSwitchBandwidth csp
-    coflows = Map.toList $ parToCoflows csp
+    coflows = IntMap.toList $ parToCoflows csp
     f (cid, coflow) = (cid, getGamma switchLinkRates coflow)

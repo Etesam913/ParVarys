@@ -3,9 +3,10 @@ iter=$1
 test -n $iter || iter=1
 shift
 
-HECs="1 2 4 6 8 10 12 14 16"
+varys_opts="-n 5000 -i 5000 -F 500"
 ghc_opts="+RTS $@"
 out="benchmark/results.txt"
+HECs="1 2 4 6 8 10 12 14 16"
 
 tSeq=""
 tsPar=""
@@ -29,7 +30,7 @@ do
     for cores in $HECs
     do
         echo "Running on $cores HECs"
-        t=$(stack exec ParVarys-exe -- $ghc_opts -N$cores | \
+        t=$(stack exec ParVarys-exe -- $varys_opts $ghc_opts -N$cores | \
         awk '/^Calculation\ Time:/{print $3 $4}')
 
         # append wall-clock time result
