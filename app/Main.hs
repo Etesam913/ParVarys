@@ -1,6 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 
-import Controller (parSebf, sebf)
+import Control.DeepSeq (force)
+import Control.Exception (evaluate)
 import Control.Monad (join)
 import Formatting (fprintLn)
 import Formatting.Clock (timeSpecs)
@@ -12,6 +13,9 @@ import Generator
 import Options.Applicative
 import System.Clock
 import System.Exit (die)
+import System.Random (mkStdGen, setStdGen)
+
+import Controller (parSebf, sebf)
 
 -- Arg Parser template adapted from:
 --  https://ro-che.info/articles/2016-12-30-optparse-applicative-quick-start
@@ -108,11 +112,18 @@ main = join . customExecParser (prefs showHelpOnError) $
             <> value 40
             <> showDefault
             )
+        <*> option auto
+            (  long "seed"
+            <> metavar "NUMBER"
+            <> help "Seed for global pseudo-random number generator"
+            <> value 4995
+            <> showDefault
+            )
 
 
-work :: String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> IO ()
+work :: String -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> Int -> IO ()
 work mode numCoflows numIngress numEgress minFlowSize maxFlowSize minFlows
-  maxFlows ingressBandwidth egressBandwidth = do
+  maxFlows ingressBandwidth egressBandwidth seed = do
   sebfImpl <-
     case mode of
       "seq"    -> return sebf
@@ -137,11 +148,15 @@ work mode numCoflows numIngress numEgress minFlowSize maxFlowSize minFlows
     egressSwitchSpec = RandomSwitchSpec
       { minFlows = 0, maxFlows = 0, ingressBandwidth, egressBandwidth }
 
+  -- seed the global pseudo-random number generator
+  -- for reproducibility of CSP problems
+  setStdGen $ mkStdGen seed
   problem <- generateProblem flowSpec ingressSwitchSpec egressSwitchSpec numIngress numEgress
 
   start <- getTime Monotonic
-  print $ sebfImpl problem
+  coflowOrder <- evaluate $ force $ sebfImpl problem
   end <- getTime Monotonic
 
+  print coflowOrder
   putStr "Calculation Time: "
   fprintLn timeSpecs start end
