@@ -88,12 +88,10 @@ toCoflows csp =
   foldl update IntMap.empty $ ingressSwitches csp
 
 parToCoflows :: CSP -> CoflowMap
-parToCoflows csp =
-  let
-    switchess = chunksOf 200 $ ingressSwitches csp
-  in
-    IntMap.unionsWith mergeCoflow  $
-      map (IntMap.unionsWith mergeCoflow . parMap rdeepseq (update IntMap.empty)) switchess
+parToCoflows =
+  IntMap.unionsWith mergeCoflow
+    . parMap rdeepseq (update IntMap.empty)
+    . ingressSwitches
 
 getSwitchBandwidth :: CSP -> BandwidthTable
 getSwitchBandwidth csp =
