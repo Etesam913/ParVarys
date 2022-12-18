@@ -93,7 +93,7 @@ parToCoflows csp =
     switchess = chunksOf 200 $ ingressSwitches csp
   in
     IntMap.unionsWith mergeCoflow  $
-      parMap rdeepseq (foldl update IntMap.empty) switchess
+      map (IntMap.unionsWith mergeCoflow . parMap rdeepseq (update IntMap.empty)) switchess
 
 getSwitchBandwidth :: CSP -> BandwidthTable
 getSwitchBandwidth csp =
