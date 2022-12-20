@@ -3,10 +3,10 @@ iter=$1
 test -n $iter || iter=1
 shift
 
-varys_opts="-n 5000 -i 5000 -F 500"
+varys_opts="-n 2000 -i 1000 -e 1000 -F 500"
 ghc_opts="+RTS $@"
 out="benchmark/results.txt"
-HECs="1 2 4 6 8 10 12 14 16"
+HECs="1 2 4 6 8 10 12 14 16 18 20"
 
 tSeq=""
 tsPar=""
@@ -22,7 +22,7 @@ do
     echo
 
     echo "Sequential Benchmarking"
-    t=$(stack exec ParVarys-exe -- -t seq $ghc_opts -N1 | \
+    t=$(stack exec ParVarys-exe -- -t seq $varys_opts $ghc_opts -N1 | \
         awk '/^Calculation\ Time:/{print $3 $4}')
     test -z "$tSeq" && tSeq=$t || tSeq="$tSeq $t"
 
