@@ -12,7 +12,7 @@ module Controller
 where
 
 import Control.DeepSeq (NFData, rnf)
-import Control.Parallel.Strategies (parMap, rdeepseq)
+import Control.Parallel.Strategies (parBuffer, rdeepseq, using)
 import qualified Data.Map.Lazy as Map
 import qualified Data.IntMap.Lazy as IntMap
 import qualified Data.List.Key as Key
@@ -26,10 +26,15 @@ import Generator
     Switch(..),
   )
 
+
 data FlowDirection = Ingress | Egress deriving (Eq, Show)
+
+instance NFData FlowDirection where
+  rnf dir = dir `seq` ()
 
 instance Ord FlowDirection where
   a <= b = case (a, b) of { (Egress, Ingress) -> False; _ -> True }
+
 
 data Coflow = Coflow
   Int         -- coflow id
@@ -47,6 +52,9 @@ type Switch2Flow = IntMap.IntMap [Flow]
 type CoflowMap = IntMap.IntMap Coflow
 type BandwidthTable = Map.Map (Int, FlowDirection) Int
 
+
+maxParSparks :: Int
+maxParSparks = 4000
 
 updateMap :: Int -> Flow -> Switch2Flow -> Switch2Flow
 updateMap k v =
@@ -89,11 +97,11 @@ toCoflows csp =
 
 parToCoflows :: CSP -> CoflowMap
 parToCoflows csp =
-  let
-    switchess = chunksOf 200 $ ingressSwitches csp
-  in
-    IntMap.unionsWith mergeCoflow  $
-      map (IntMap.unionsWith mergeCoflow . parMap rdeepseq (update IntMap.empty)) switchess
+  IntMap.unionsWith mergeCoflow
+    (map f switchess `using` parBuffer maxParSparks rdeepseq)
+  where
+    f = IntMap.unionsWith mergeCoflow . map (update IntMap.empty)
+    switchess = chunksOf 10 $ ingressSwitches csp
 
 getSwitchBandwidth :: CSP -> BandwidthTable
 getSwitchBandwidth csp =
@@ -101,6 +109,13 @@ getSwitchBandwidth csp =
     f (Switch sid _ iBw eBw) = [((sid, Ingress), iBw), ((sid, Egress), eBw)]
     switches = ingressSwitches csp ++ egressSwitches csp
 
+parGetSwitchBandwidth :: CSP -> BandwidthTable
+parGetSwitchBandwidth csp =
+  Map.fromList $ concat
+    (map (concatMap f) switchess `using` parBuffer maxParSparks rdeepseq)
+  where
+    f (Switch sid _ iBw eBw) = [((sid, Ingress), iBw), ((sid, Egress), eBw)]
+    switchess = chunksOf 20 $ ingressSwitches csp ++ egressSwitches csp
 
 getGamma :: BandwidthTable -> Coflow -> Rational
 getGamma bwTbl (Coflow _ _ ingressFlows egressFlows) =
@@ -133,8 +148,8 @@ sebf csp =
 -- Parallel version of sebf
 parSebf :: CSP -> [(Int, Rational)]
 parSebf csp =
-  Key.sort snd $ parMap rdeepseq f coflows
+  Key.sort snd (map f coflows `using` parBuffer maxParSparks rdeepseq)
   where
-    switchLinkRates = getSwitchBandwidth csp
+    switchLinkRates = parGetSwitchBandwidth csp
     coflows = IntMap.toList $ parToCoflows csp
     f (cid, coflow) = (cid, getGamma switchLinkRates coflow)
